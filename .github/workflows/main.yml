@@ -1,0 +1,41 @@
+name: Windows RDP Access
+
+on:
+  workflow_dispatch:  # Manually trigger workflow
+
+jobs:
+  setup-windows-rdp:
+    runs-on: windows-latest  # Uses a GitHub-hosted Windows machine
+    steps:
+      - name: Set up RDP user
+        run: |
+          net user rdpuser Password123! /add
+          net localgroup administrators rdpuser /add
+          echo "User 'rdpuser' created with password 'Password123!'"
+
+      - name: Enable RDP and Firewall Rules
+        run: |
+          reg add "HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+          netsh advfirewall firewall set rule group="Remote Desktop" new enable=Yes
+          Enable-PSRemoting -Force
+          echo "RDP Enabled and Firewall configured."
+
+      - name: Download and Start ngrok
+        run: |
+          Invoke-WebRequest -Uri "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-windows-amd64.zip" -OutFile "ngrok.zip"
+          Expand-Archive ngrok.zip
+          .\ngrok\ngrok.exe authtoken 2r1KTdfyArxt4GuaIPHRjkgIyaL_2aYnFgFJdEPYu9WiBUnCD
+          Start-Process -NoNewWindow -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389"
+
+      - name: Get ngrok URL
+        run: |
+          Start-Sleep -s 10  # Wait for ngrok to establish connection
+          $response = Invoke-RestMethod -Uri http://127.0.0.1:4040/api/tunnels
+          $rdp_address = $response.tunnels.public_url
+          echo "RDP Address: $rdp_address" | Out-File -FilePath rdp_info.txt
+
+      - name: Upload RDP Info
+        uses: actions/upload-artifact@v3
+        with:
+          name: rdp-credentials
+          path: rdp_info.txt
