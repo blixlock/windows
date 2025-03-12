@@ -28,7 +28,7 @@ jobs:
 
       - name: Start ngrok Tunnel
         run: |
-          .\ngrok\ngrok.exe authtoken 2r1KTdfyArxt4GuaIPHRjkgIyaL_2aYnFgFJdEPYu9WiBUnCD
+          .\ngrok\ngrok.exe authtoken 
           Start-Process -NoNewWindow -FilePath ".\ngrok\ngrok.exe" -ArgumentList "tcp 3389"
 
       - name: Get ngrok URL
