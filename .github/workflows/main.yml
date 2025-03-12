@@ -35,7 +35,7 @@ jobs:
           echo "RDP Address: $rdp_address" | Out-File -FilePath rdp_info.txt
 
       - name: Upload RDP Info
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rdp-credentials
           path: rdp_info.txt
